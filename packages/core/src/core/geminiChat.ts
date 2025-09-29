@@ -23,6 +23,7 @@ import type { Config } from '../config/config.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { hasCycleInSchema } from '../tools/tools.js';
 import type { StructuredError } from './turn.js';
+import { ContextManager } from './contextManager.js';
 import {
   logContentRetry,
   logContentRetryFailure,
@@ -178,14 +179,57 @@ export class GeminiChat {
   // A promise to represent the current state of the message being sent to the
   // model.
   private sendPromise: Promise<void> = Promise.resolve();
+  private contextManager: ContextManager;
 
   constructor(
     private readonly config: Config,
     private readonly contentGenerator: ContentGenerator,
     private readonly generationConfig: GenerateContentConfig = {},
     private history: Content[] = [],
+    contextManager?: ContextManager,
   ) {
     validateHistory(history);
+    this.contextManager = contextManager || new ContextManager({
+      model: config.getModel() || DEFAULT_GEMINI_FLASH_MODEL,
+      cleanupThreshold: 0.8, // Default to 80%
+      maxKnowledgeEntries: 100,
+      autoExtractKnowledge: true,
+    });
+  }
+
+  /**
+   * Checks if context usage exceeds the cleanup threshold and performs cleanup if needed.
+   * Extracts knowledge from completed conversations before reducing context.
+   *
+   * @param prompt_id - Unique identifier for the current prompt/job
+   */
+  private async maybeCleanupContext(prompt_id: string): Promise<void> {
+    try {
+      // Check if context usage exceeds the cleanup threshold
+      const shouldCleanup = await this.contextManager.shouldCleanupContext(
+        this.history,
+        this.config
+      );
+
+      if (shouldCleanup) {
+        console.debug('Context usage threshold exceeded, performing cleanup...');
+        
+        // Extract knowledge from the current conversation before reducing context
+        const { newHistory, knowledgeExtracted } = await this.contextManager.reduceContext(
+          this.history,
+          this.config,
+          prompt_id
+        );
+
+        // Update the internal history with the reduced context
+        this.history = newHistory;
+
+        console.debug(`Context cleanup completed. Removed ${this.history.length - newHistory.length} entries, extracted ${knowledgeExtracted.length} knowledge items.`);
+      }
+    } catch (error) {
+      console.warn('Context cleanup failed:', error);
+      // Continue execution even if cleanup fails
+    }
   }
 
   /**
@@ -340,6 +384,10 @@ export class GeminiChat {
         // Re-throw the error so the caller knows something went wrong.
         throw error;
       });
+      
+      // After successfully sending the message, check if we should cleanup context
+      await this.maybeCleanupContext(prompt_id);
+      
       return response;
     } catch (error) {
       this.sendPromise = Promise.resolve();
@@ -509,7 +557,22 @@ export class GeminiChat {
       authType: this.config.getContentGeneratorConfig()?.authType,
     });
 
-    return this.processStreamResponse(streamResponse, userContent);
+    const streamResult = this.processStreamResponse(streamResponse, userContent);
+    
+    // Wrap the stream to perform cleanup after completion
+    const self = this;
+    async function* wrappedStream() {
+      try {
+        for await (const chunk of streamResult) {
+          yield chunk;
+        }
+      } finally {
+        // After stream completion, check if we should cleanup context
+        await self.maybeCleanupContext(prompt_id);
+      }
+    }
+    
+    return wrappedStream();
   }
 
   /**

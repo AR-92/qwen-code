@@ -19,6 +19,7 @@ export * from './core/turn.js';
 export * from './core/geminiRequest.js';
 export * from './core/coreToolScheduler.js';
 export * from './core/nonInteractiveToolExecutor.js';
+export * from './core/contextManager.js';
 
 export * from './code_assist/codeAssist.js';
 export * from './code_assist/oauth2.js';
@@ -78,6 +79,9 @@ export * from './subagents/index.js';
 
 // Export prompt logic
 export * from './prompts/mcp-prompts.js';
+export * from './prompts/prompt-models.js';
+export * from './prompts/prompt-service.js';
+export * from './prompts/task-execution-engine.js';
 
 // Export specific tool logic
 export * from './tools/read-file.js';

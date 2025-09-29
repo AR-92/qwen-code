@@ -17,9 +17,10 @@ import {
 } from '@qwen-code/qwen-code-core';
 import { render } from 'ink';
 import { spawn } from 'node:child_process';
+import * as fs from 'node:fs';
 import dns from 'node:dns';
 import os from 'node:os';
-import { basename } from 'node:path';
+import { basename, join } from 'node:path';
 import v8 from 'node:v8';
 import React from 'react';
 import { validateAuthMethod } from './config/auth.js';
@@ -45,6 +46,7 @@ import { getUserStartupWarnings } from './utils/userStartupWarnings.js';
 import { getCliVersion } from './utils/version.js';
 import { validateNonInteractiveAuth } from './validateNonInterActiveAuth.js';
 import { runZedIntegration } from './zed-integration/zedIntegration.js';
+
 
 export function validateDnsResolutionOrder(
   order: string | undefined,
@@ -169,6 +171,20 @@ export async function startInteractiveUI(
 
 export async function main() {
   setupUnhandledRejectionHandler();
+  
+  // Set Eva system prompt as default by pointing to the eva-system-prompt.md file
+  // Set it unless the user has explicitly set a custom path (not the default location)
+  const defaultSystemMdPath = join(os.homedir(), '.qwen', 'system.md');
+  const currentSystemMdPath = process.env['GEMINI_SYSTEM_MD'];
+  
+  // Only set our default if no custom path is set or if it's currently set to the default location
+  if (!currentSystemMdPath || currentSystemMdPath === defaultSystemMdPath) {
+    const evaSystemPromptPath = join(process.cwd(), 'eva-system-prompt.md');
+    if (fs.existsSync(evaSystemPromptPath)) {
+      process.env['GEMINI_SYSTEM_MD'] = evaSystemPromptPath;
+    }
+  }
+  
   const workspaceRoot = process.cwd();
   const settings = loadSettings(workspaceRoot);
 

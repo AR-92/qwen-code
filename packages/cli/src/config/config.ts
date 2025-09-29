@@ -32,6 +32,9 @@ import { hideBin } from 'yargs/helpers';
 import yargs from 'yargs/yargs';
 import { extensionsCommand } from '../commands/extensions.js';
 import { mcpCommand } from '../commands/mcp.js';
+import { promptCommand } from '../commands/prompt.js';
+import { personaCommand } from '../commands/persona.js';
+import { chainCommand } from '../commands/chain.js';
 import type { Settings } from './settings.js';
 
 import { resolvePath } from '../utils/resolvePath.js';
@@ -312,6 +315,9 @@ export async function parseArguments(settings: Settings): Promise<CliArgs> {
   }
 
   yargsInstance
+    .command(promptCommand)
+    .command(personaCommand)
+    .command(chainCommand)
     .version(await getCliVersion()) // This will enable the --version flag based on package.json
     .alias('v', 'version')
     .help()
@@ -378,6 +384,8 @@ export async function loadHierarchicalGeminiMemory(
   );
 }
 
+
+
 export async function loadCliConfig(
   settings: Settings,
   extensions: Extension[],
@@ -385,6 +393,9 @@ export async function loadCliConfig(
   argv: CliArgs,
   cwd: string = process.cwd(),
 ): Promise<Config> {
+  // Check if GEMINI_SYSTEM_MD environment variable is set, which will be handled by getCoreSystemPrompt
+  // If it's set, the system prompt will be loaded from the specified file instead of defaults
+
   const debugMode =
     argv.debug ||
     [process.env['DEBUG'], process.env['DEBUG_MODE']].some(
@@ -636,7 +647,7 @@ export async function loadCliConfig(
       (typeof argv.openaiLogging === 'undefined'
         ? settings.enableOpenAILogging
         : argv.openaiLogging) ?? false,
-    systemPromptMappings: (settings.systemPromptMappings ?? [
+    systemPromptMappings: settings.systemPromptMappings as ConfigParameters['systemPromptMappings'] ?? [
       {
         baseUrls: [
           'https://dashscope.aliyuncs.com/compatible-mode/v1/',
@@ -646,7 +657,7 @@ export async function loadCliConfig(
         template:
           'SYSTEM_TEMPLATE:{"name":"qwen3_coder","params":{"is_git_repository":{RUNTIME_VARS_IS_GIT_REPO},"sandbox":"{RUNTIME_VARS_SANDBOX}"}}',
       },
-    ]) as ConfigParameters['systemPromptMappings'],
+    ] as ConfigParameters['systemPromptMappings'],
     authType: settings.security?.auth?.selectedType,
     contentGenerator: settings.contentGenerator,
     cliVersion,

@@ -15,8 +15,38 @@ import {
   type Mock,
 } from 'vitest';
 
+vi.mock('fs');
+const currentPlatform = { value: 'linux' };
+
+const mockPlatform = vi.hoisted(() => {
+  const mockFn = vi.fn(() => currentPlatform.value);
+  Object.defineProperty(mockFn, 'setPlatform', {
+    value: (value: string) => { currentPlatform.value = value; },
+    writable: false,
+    configurable: false,
+  });
+  return mockFn;
+}) as Mock<() => string> & { setPlatform: (value: string) => void };
+const mockTmpdir = vi.hoisted(() => vi.fn(() => '/tmp'));
+const mockHomedir = vi.hoisted(() => vi.fn(() => '/tmp/test-home'));
+
+vi.mock('os', async () => {
+  const actual = await vi.importActual('node:os');
+  return {
+    ...actual,
+    homedir: mockHomedir,
+    platform: mockPlatform,
+    tmpdir: mockTmpdir,
+  };
+});
+vi.mock('crypto');
+vi.mock('../utils/textUtils.js');
+
+// Hoist mock functions to top level
 const mockIsBinary = vi.hoisted(() => vi.fn());
 const mockShellExecutionService = vi.hoisted(() => vi.fn());
+
+// Mock the core module after other mocks are set up
 vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
   const original =
     await importOriginal<typeof import('@qwen-code/qwen-code-core')>();
@@ -26,10 +56,6 @@ vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
     isBinary: mockIsBinary,
   };
 });
-vi.mock('fs');
-vi.mock('os');
-vi.mock('crypto');
-vi.mock('../utils/textUtils.js');
 
 import {
   useShellCommandProcessor,
@@ -71,8 +97,6 @@ describe('useShellCommandProcessor', () => {
     } as Config;
     mockGeminiClient = { addHistory: vi.fn() } as unknown as GeminiClient;
 
-    vi.mocked(os.platform).mockReturnValue('linux');
-    vi.mocked(os.tmpdir).mockReturnValue('/tmp');
     (vi.mocked(crypto.randomBytes) as Mock).mockReturnValue(
       Buffer.from('abcdef', 'hex'),
     );
@@ -308,7 +332,9 @@ describe('useShellCommandProcessor', () => {
   });
 
   it('should not wrap the command on Windows', async () => {
-    vi.mocked(os.platform).mockReturnValue('win32');
+    // Set the platform to Windows for this test
+    mockPlatform.setPlatform('win32');
+    // We need to ensure the mock function is reset so it returns the new value
     const { result } = renderProcessorHook();
 
     act(() => {

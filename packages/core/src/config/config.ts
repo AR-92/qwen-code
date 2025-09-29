@@ -49,6 +49,8 @@ import type { AnyToolInvocation } from '../tools/tools.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { WriteFileTool } from '../tools/write-file.js';
+import { SlashCommandTool } from '../tools/slash-command.js';
+import { EnhancedSlashCommandTool } from '../tools/slash-command-enhanced.js';
 import { shouldAttemptBrowserLaunch } from '../utils/browser.js';
 import { FileExclusions } from '../utils/ignorePatterns.js';
 import { WorkspaceContext } from '../utils/workspaceContext.js';
@@ -245,6 +247,11 @@ export interface ConfigParameters {
   enablePromptCompletion?: boolean;
   skipLoopDetection?: boolean;
   vlmSwitchMode?: string;
+  contextManagement?: {
+    cleanupThreshold?: number;
+    maxKnowledgeEntries?: number;
+    autoExtractKnowledge?: boolean;
+  };
 }
 
 export class Config {
@@ -337,6 +344,11 @@ export class Config {
   private readonly enablePromptCompletion: boolean = false;
   private readonly skipLoopDetection: boolean;
   private readonly vlmSwitchMode: string | undefined;
+  private readonly contextManagementSettings: {
+    cleanupThreshold: number;
+    maxKnowledgeEntries: number;
+    autoExtractKnowledge: boolean;
+  };
   private initialized: boolean = false;
   readonly storage: Storage;
   private readonly fileExclusions: FileExclusions;
@@ -433,6 +445,11 @@ export class Config {
     this.storage = new Storage(this.targetDir);
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.vlmSwitchMode = params.vlmSwitchMode;
+    this.contextManagementSettings = {
+      cleanupThreshold: params.contextManagement?.cleanupThreshold ?? 0.8, // 80% threshold
+      maxKnowledgeEntries: params.contextManagement?.maxKnowledgeEntries ?? 100,
+      autoExtractKnowledge: params.contextManagement?.autoExtractKnowledge ?? true,
+    };
     this.fileExclusions = new FileExclusions(this);
 
     // Initialize logger asynchronously
@@ -594,6 +611,10 @@ export class Config {
 
   getSessionTokenLimit(): number {
     return this.sessionTokenLimit;
+  }
+
+  getContextManagementSettings() {
+    return this.contextManagementSettings;
   }
 
   setQuotaErrorOccurred(value: boolean): void {
@@ -1057,6 +1078,7 @@ export class Config {
     registerCoreTool(TodoWriteTool, this);
     registerCoreTool(ExitPlanModeTool, this);
     registerCoreTool(WebFetchTool, this);
+    registerCoreTool(EnhancedSlashCommandTool, this);
     // Conditionally register web search tool only if Tavily API key is set
     if (this.getTavilyApiKey()) {
       registerCoreTool(WebSearchTool, this);

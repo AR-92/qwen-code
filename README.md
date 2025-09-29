@@ -55,6 +55,7 @@ For detailed setup instructions, see [Authorization](#authorization).
 - **Workflow Automation** - Automate operational tasks like handling pull requests and complex rebases
 - **Enhanced Parser** - Adapted parser specifically optimized for Qwen-Coder models
 - **Vision Model Support** - Automatically detect images in your input and seamlessly switch to vision-capable models for multimodal analysis
+- **Advanced Context Management** - Automatically manages conversation context length by cleaning up unnecessary context and extracting reusable knowledge
 
 ## Installation
 
@@ -113,6 +114,14 @@ Create or edit `.qwen/settings.json` in your home directory:
   "sessionTokenLimit": 32000
 }
 ```
+
+#### Advanced Context Management
+
+Qwen Code features intelligent context management that automatically monitors and optimizes conversation history:
+
+- **Automatic Cleanup**: When context usage exceeds a configurable threshold (default 80% of model's token limit), unnecessary context is automatically cleaned up
+- **Knowledge Extraction**: Before cleanup, important information like decisions, facts, and preferences are extracted and stored for future use
+- **Continuous Optimization**: Maintains optimal context length for better performance and reduced API costs
 
 #### Session Commands
 
@@ -387,6 +396,17 @@ qwen
 - `Ctrl+C` - Cancel current operation
 - `Ctrl+D` - Exit (on empty line)
 - `Up/Down` - Navigate command history
+
+### Slash Command Integration with AI
+
+Qwen Code now allows AI to recognize and suggest slash commands through the new `slash_command` tool. This enables AI agents to:
+
+- Identify appropriate slash commands for specific tasks
+- Suggest memory management with `/memory refresh` or `/memory add`
+- Recommend session management with `/clear`, `/compress`, or `/quit`
+- Guide users toward helpful commands like `/help`, `/stats`, or `/tools`
+
+See [Slash Commands Guide](./docs/slash-commands-ai.md) for complete documentation on using slash commands with AI.
 
 ## Benchmark Results
 
