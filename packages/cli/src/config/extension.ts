@@ -19,7 +19,7 @@ import { recursivelyHydrateStrings } from './extensions/variables.js';
 
 export const EXTENSIONS_DIRECTORY_NAME = path.join('.qwen', 'extensions');
 export const EXTENSIONS_CONFIG_FILENAME = 'qwen-extension.json';
-export const EXTENSIONS_CONFIG_FILENAME_OLD = 'gemini-extension.json';
+export const EXTENSIONS_CONFIG_FILENAME_OLD = 'qwen-extension.json';
 export const INSTALL_METADATA_FILENAME = '.qwen-extension-install.json';
 
 export interface Extension {
@@ -448,7 +448,7 @@ export async function updateExtension(
   );
   if (!extension) {
     throw new Error(
-      `Extension "${extensionName}" not found. Run gemini extensions list to see available extensions.`,
+      `Extension "${extensionName}" not found. Run qwen extensions list to see available extensions.`,
     );
   }
   if (!extension.installMetadata) {

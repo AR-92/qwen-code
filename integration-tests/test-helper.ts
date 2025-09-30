@@ -119,14 +119,14 @@ export class TestRig {
   _lastRunStdout?: string;
 
   constructor() {
-    this.bundlePath = join(__dirname, '..', 'bundle/gemini.js');
+    this.bundlePath = join(__dirname, '..', 'bundle/qwen.js');
     this.testDir = null;
   }
 
   // Get timeout based on environment
   getDefaultTimeout() {
     if (env['CI']) return 60000; // 1 minute in CI
-    if (env['GEMINI_SANDBOX']) return 30000; // 30s in containers
+    if (env['QWEN_SANDBOX']) return 30000; // 30s in containers
     return 15000; // 15s locally
   }
 
@@ -140,8 +140,8 @@ export class TestRig {
     mkdirSync(this.testDir, { recursive: true });
 
     // Create a settings file to point the CLI to the local collector
-    const geminiDir = join(this.testDir, '.qwen');
-    mkdirSync(geminiDir, { recursive: true });
+    const qwenDir = join(this.testDir, '.qwen');
+    mkdirSync(qwenDir, { recursive: true });
     // In sandbox mode, use an absolute path for telemetry inside the container
     // The container mounts the test directory at the same path as the host
     const telemetryPath = join(this.testDir, 'telemetry.log'); // Always use test directory for telemetry
@@ -154,11 +154,11 @@ export class TestRig {
         outfile: telemetryPath,
       },
       sandbox:
-        env['GEMINI_SANDBOX'] !== 'false' ? env['GEMINI_SANDBOX'] : false,
+        env['QWEN_SANDBOX'] !== 'false' ? env['QWEN_SANDBOX'] : false,
       ...options.settings, // Allow tests to override/add settings
     };
     writeFileSync(
-      join(geminiDir, 'settings.json'),
+      join(qwenDir, 'settings.json'),
       JSON.stringify(settings, null, 2),
     );
   }
@@ -257,7 +257,7 @@ export class TestRig {
           // Filter out telemetry output when running with Podman
           // Podman seems to output telemetry to stdout even when writing to file
           let result = stdout;
-          if (env['GEMINI_SANDBOX'] === 'podman') {
+          if (env['QWEN_SANDBOX'] === 'podman') {
             // Remove telemetry JSON objects from output
             // They are multi-line JSON objects that start with { and contain telemetry fields
             const lines = result.split(EOL);
@@ -385,7 +385,7 @@ export class TestRig {
             const logData = JSON.parse(jsonStr);
             if (
               logData.attributes &&
-              logData.attributes['event.name'] === `gemini_cli.${eventName}`
+              logData.attributes['event.name'] === `qwen-code.${eventName}`
             ) {
               return true;
             }
@@ -566,7 +566,7 @@ export class TestRig {
                 }
               } else if (
                 obj.attributes &&
-                obj.attributes['event.name'] === 'gemini_cli.tool_call'
+                obj.attributes['event.name'] === 'qwen-code.tool_call'
               ) {
                 logs.push({
                   timestamp: obj.attributes['event.timestamp'],
@@ -709,7 +709,7 @@ export class TestRig {
         const logData = JSON.parse(jsonStr);
         if (
           logData.attributes &&
-          logData.attributes['event.name'] === 'gemini_cli.api_request'
+          logData.attributes['event.name'] === 'qwen-code.api_request'
         ) {
           lastApiRequest = logData;
         }

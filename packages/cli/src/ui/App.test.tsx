@@ -56,7 +56,7 @@ interface MockServerConfig {
   mcpServers?: Record<string, MCPServerConfig>; // Use imported MCPServerConfig
   userAgent: string;
   userMemory: string;
-  geminiMdFileCount: number;
+  qwenMdFileCount: number;
   approvalMode: ApprovalMode;
   vertexai?: boolean;
   showMemoryUsage?: boolean;
@@ -149,7 +149,7 @@ vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
         mcpServers: opts.mcpServers,
         userAgent: opts.userAgent || 'test-agent',
         userMemory: opts.userMemory || '',
-        geminiMdFileCount: opts.geminiMdFileCount || 0,
+        qwenMdFileCount: opts.qwenMdFileCount || 0,
         approvalMode: opts.approvalMode ?? ApprovalMode.DEFAULT,
         vertexai: opts.vertexai,
         showMemoryUsage: opts.showMemoryUsage ?? false,
@@ -175,7 +175,7 @@ vi.mock('@qwen-code/qwen-code-core', async (importOriginal) => {
         getUserAgent: vi.fn(() => opts.userAgent || 'test-agent'),
         getUserMemory: vi.fn(() => opts.userMemory || ''),
         setUserMemory: vi.fn(),
-        getGeminiMdFileCount: vi.fn(() => opts.geminiMdFileCount || 0),
+        getGeminiMdFileCount: vi.fn(() => opts.qwenMdFileCount || 0),
         setGeminiMdFileCount: vi.fn(),
         getApprovalMode: vi.fn(() => opts.approvalMode ?? ApprovalMode.DEFAULT),
         setApprovalMode: vi.fn(),
@@ -333,7 +333,7 @@ describe('App UI', () => {
       settings: settings.user || {},
     };
     const workspaceSettingsFile: SettingsFile = {
-      path: '/workspace/.gemini/settings.json',
+      path: '/workspace/.qwen/settings.json',
       settings: settings.workspace || {},
     };
     return new LoadedSettings(
@@ -360,7 +360,7 @@ describe('App UI', () => {
       targetDir: '/test/dir',
       debugMode: false,
       userMemory: '',
-      geminiMdFileCount: 0,
+      qwenMdFileCount: 0,
       showMemoryUsage: false,
       sessionId: 'test-session-id',
       cwd: '/tmp',

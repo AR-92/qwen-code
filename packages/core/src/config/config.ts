@@ -49,7 +49,6 @@ import type { AnyToolInvocation } from '../tools/tools.js';
 import { WebFetchTool } from '../tools/web-fetch.js';
 import { WebSearchTool } from '../tools/web-search.js';
 import { WriteFileTool } from '../tools/write-file.js';
-import { SlashCommandTool } from '../tools/slash-command.js';
 import { EnhancedSlashCommandTool } from '../tools/slash-command-enhanced.js';
 import { shouldAttemptBrowserLaunch } from '../utils/browser.js';
 import { FileExclusions } from '../utils/ignorePatterns.js';

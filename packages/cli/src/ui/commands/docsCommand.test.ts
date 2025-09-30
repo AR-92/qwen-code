@@ -56,7 +56,7 @@ describe('docsCommand', () => {
     }
 
     // Simulate a sandbox environment
-    vi.stubEnv('SANDBOX', 'gemini-sandbox');
+    vi.stubEnv('SANDBOX', 'qwen-sandbox');
     const docsUrl = 'https://qwenlm.github.io/qwen-code-docs/en';
 
     await docsCommand.action(mockContext, '');

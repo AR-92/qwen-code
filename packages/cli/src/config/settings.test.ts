@@ -522,7 +522,7 @@ describe('Settings Loading and Merging', () => {
         theme: 'legacy-dark',
         vimMode: true,
         contextFileName: 'LEGACY_CONTEXT.md',
-        model: 'gemini-pro',
+        model: 'qwen-pro',
         mcpServers: {
           'legacy-server-1': {
             command: 'npm',
@@ -562,7 +562,7 @@ describe('Settings Loading and Merging', () => {
           includeDirectories: [],
         },
         model: {
-          name: 'gemini-pro',
+          name: 'qwen-pro',
           chatCompression: {},
         },
         mcpServers: {

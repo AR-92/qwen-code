@@ -136,12 +136,12 @@ If you are experiencing performance issues with file searching (e.g., with `@` c
   - **Example:** `"sandbox": "docker"`
 
 - **`toolDiscoveryCommand`** (string):
-  - **Description:** **Align with Gemini CLI.** Defines a custom shell command for discovering tools from your project. The shell command must return on `stdout` a JSON array of [function declarations](https://ai.google.dev/gemini-api/docs/function-calling#function-declarations). Tool wrappers are optional.
+  - **Description:** **Align with Qwen CLI.** Defines a custom shell command for discovering tools from your project. The shell command must return on `stdout` a JSON array of [function declarations](https://ai.google.dev/gemini-api/docs/function-calling#function-declarations). Tool wrappers are optional.
   - **Default:** Empty
   - **Example:** `"toolDiscoveryCommand": "bin/get_tools"`
 
 - **`toolCallCommand`** (string):
-  - **Description:** **Align with Gemini CLI.** Defines a custom shell command for calling a specific tool that was discovered using `toolDiscoveryCommand`. The shell command must meet the following criteria:
+  - **Description:** **Align with Qwen CLI.** Defines a custom shell command for calling a specific tool that was discovered using `toolDiscoveryCommand`. The shell command must meet the following criteria:
     - It must take function `name` (exactly as in [function declaration](https://ai.google.dev/gemini-api/docs/function-calling#function-declarations)) as first command line argument.
     - It must read function arguments as JSON on `stdin`, analogous to [`functionCall.args`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#functioncall).
     - It must return function output as JSON on `stdout`, analogous to [`functionResponse.response.content`](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#functionresponse).
@@ -445,7 +445,7 @@ The CLI automatically loads environment variables from an `.env` file. The loadi
   - Specifies the default OPENAI model to use.
   - Overrides the hardcoded default
   - Example: `export OPENAI_MODEL="qwen3-coder-plus"`
-- **`GEMINI_SANDBOX`**:
+- **`QWEN_SANDBOX`**:
   - Alternative to the `sandbox` setting in `settings.json`.
   - Accepts `true`, `false`, `docker`, `podman`, or a custom command string.
 - **`SEATBELT_PROFILE`** (macOS specific):
@@ -611,7 +611,7 @@ Qwen Code can execute potentially unsafe operations (like shell commands and fil
 Sandboxing is disabled by default, but you can enable it in a few ways:
 
 - Using `--sandbox` or `-s` flag.
-- Setting `GEMINI_SANDBOX` environment variable.
+- Setting `QWEN_SANDBOX` environment variable.
 - Sandbox is enabled when using `--yolo` or `--approval-mode=yolo` by default.
 
 By default, it uses a pre-built `qwen-code-sandbox` Docker image.

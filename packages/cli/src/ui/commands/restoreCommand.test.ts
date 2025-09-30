@@ -19,15 +19,15 @@ describe('restoreCommand', () => {
   let mockGitService: GitService;
   let mockSetHistory: ReturnType<typeof vi.fn>;
   let testRootDir: string;
-  let geminiTempDir: string;
+  let qwenTempDir: string;
   let checkpointsDir: string;
 
   beforeEach(async () => {
     testRootDir = await fs.mkdtemp(
       path.join(os.tmpdir(), 'restore-command-test-'),
     );
-    geminiTempDir = path.join(testRootDir, '.gemini');
-    checkpointsDir = path.join(geminiTempDir, 'checkpoints');
+    qwenTempDir = path.join(testRootDir, '.qwen');
+    checkpointsDir = path.join(qwenTempDir, 'checkpoints');
     // The command itself creates this, but for tests it's easier to have it ready.
     // Some tests might remove it to test error paths.
     await fs.mkdir(checkpointsDir, { recursive: true });
@@ -41,7 +41,7 @@ describe('restoreCommand', () => {
       getCheckpointingEnabled: vi.fn().mockReturnValue(true),
       storage: {
         getProjectTempCheckpointsDir: vi.fn().mockReturnValue(checkpointsDir),
-        getProjectTempDir: vi.fn().mockReturnValue(geminiTempDir),
+        getProjectTempDir: vi.fn().mockReturnValue(qwenTempDir),
       },
       getGeminiClient: vi.fn().mockReturnValue({
         setHistory: mockSetHistory,
@@ -89,7 +89,7 @@ describe('restoreCommand', () => {
       ).toEqual({
         type: 'message',
         messageType: 'error',
-        content: 'Could not determine the .gemini directory path.',
+        content: 'Could not determine the .qwen directory path.',
       });
     });
 

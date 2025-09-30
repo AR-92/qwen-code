@@ -30,19 +30,19 @@ const getSavedChatTags = async (
   mtSortDesc: boolean,
 ): Promise<ChatDetail[]> => {
   const cfg = context.services.config;
-  const geminiDir = cfg?.storage?.getProjectTempDir();
-  if (!geminiDir) {
+  const qwenDir = cfg?.storage?.getProjectTempDir();
+  if (!qwenDir) {
     return [];
   }
   try {
     const file_head = 'checkpoint-';
     const file_tail = '.json';
-    const files = await fsPromises.readdir(geminiDir);
+    const files = await fsPromises.readdir(qwenDir);
     const chatDetails: Array<{ name: string; mtime: Date }> = [];
 
     for (const file of files) {
       if (file.startsWith(file_head) && file.endsWith(file_tail)) {
-        const filePath = path.join(geminiDir, file);
+        const filePath = path.join(qwenDir, file);
         const stats = await fsPromises.stat(filePath);
         const tagName = file.slice(file_head.length, -file_tail.length);
         chatDetails.push({
@@ -193,7 +193,7 @@ const resumeCommand: SlashCommand = {
 
     const rolemap: { [key: string]: MessageType } = {
       user: MessageType.USER,
-      model: MessageType.GEMINI,
+      model: MessageType.QWEN,
     };
 
     const uiHistory: HistoryItemWithoutId[] = [];

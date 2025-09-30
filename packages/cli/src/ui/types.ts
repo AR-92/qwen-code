@@ -192,6 +192,7 @@ export enum MessageType {
   QUIT = 'quit',
   QUIT_CONFIRMATION = 'quit_confirmation',
   GEMINI = 'gemini',
+  QWEN = 'qwen',
   COMPRESSION = 'compression',
   SUMMARY = 'summary',
 }

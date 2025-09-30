@@ -66,7 +66,7 @@ describe('chatCommand', () => {
               getChat: mockGetChat,
             }) as unknown as GeminiClient,
           storage: {
-            getProjectTempDir: () => '/project/root/.gemini/tmp/mockhash',
+            getProjectTempDir: () => '/project/root/.qwen/tmp/mockhash',
           },
         },
         logger: {
@@ -289,7 +289,7 @@ describe('chatCommand', () => {
 
     it('should resume a conversation', async () => {
       const conversation: Content[] = [
-        { role: 'user', parts: [{ text: 'hello gemini' }] },
+        { role: 'user', parts: [{ text: 'hello qwen' }] },
         { role: 'model', parts: [{ text: 'hello world' }] },
       ];
       mockLoadCheckpoint.mockResolvedValue(conversation);
@@ -299,8 +299,8 @@ describe('chatCommand', () => {
       expect(result).toEqual({
         type: 'load_history',
         history: [
-          { type: 'user', text: 'hello gemini' },
-          { type: 'gemini', text: 'hello world' },
+          { type: 'user', text: 'hello qwen' },
+          { type: 'qwen', text: 'hello world' },
         ] as HistoryItemWithoutId[],
         clientHistory: conversation,
       });

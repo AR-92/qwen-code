@@ -6,8 +6,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import './src/gemini.js';
-import { main } from './src/gemini.js';
+import './src/qwen.js';
+import { main } from './src/qwen.js';
 import { FatalError } from '@qwen-code/qwen-code-core';
 
 // --- Global Entry Point ---

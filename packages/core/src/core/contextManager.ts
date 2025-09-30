@@ -9,7 +9,7 @@ import { tokenLimit } from './tokenLimits.js';
 import type { Config } from '../config/config.js';
 
 // Represents extracted knowledge from a conversation
-interface ExtractedKnowledge {
+export interface ExtractedKnowledge {
   id: string;
   content: string;
   timestamp: number;
@@ -34,6 +34,8 @@ interface ContextManagerConfig {
   autoExtractKnowledge: boolean;
   // Model name to use for token counting
   model: string;
+  // Fixed token threshold to trigger cleanup (alternative to percentage-based)
+  fixedTokenThreshold?: number;
 }
 
 /**
@@ -46,6 +48,7 @@ export class ContextManager {
   private cleanupThreshold: number;
   private autoExtractKnowledge: boolean;
   private model: string;
+  private fixedTokenThreshold?: number;
 
   constructor(config?: Partial<ContextManagerConfig>) {
     const defaultConfig: ContextManagerConfig = {
@@ -53,6 +56,7 @@ export class ContextManager {
       maxKnowledgeEntries: 100,
       autoExtractKnowledge: true,
       model: 'gemini-2.0-flash',
+      fixedTokenThreshold: 4000, // Default to 4000-token threshold appropriate for code editor CLI
     };
 
     const finalConfig = { ...defaultConfig, ...config };
@@ -60,6 +64,7 @@ export class ContextManager {
     this.maxKnowledgeEntries = finalConfig.maxKnowledgeEntries;
     this.autoExtractKnowledge = finalConfig.autoExtractKnowledge;
     this.model = finalConfig.model;
+    this.fixedTokenThreshold = finalConfig.fixedTokenThreshold;
   }
 
   /**
@@ -70,7 +75,13 @@ export class ContextManager {
     config?: Config,
   ): Promise<boolean> {
     const usage = await this.getContextUsage(history, config);
-    return usage.percentageUsed >= this.cleanupThreshold;
+    
+    // Check both percentage-based and fixed token threshold
+    const percentageExceeded = usage.percentageUsed >= this.cleanupThreshold;
+    const fixedThresholdExceeded = this.fixedTokenThreshold ? 
+      usage.tokensUsed >= this.fixedTokenThreshold : false;
+    
+    return percentageExceeded || fixedThresholdExceeded;
   }
 
   /**
@@ -116,6 +127,28 @@ export class ContextManager {
     }
 
     return totalTokens;
+  }
+
+  /**
+   * Perform real-time token monitoring and cleanup when thresholds are exceeded
+   */
+  async monitorAndCleanup(
+    history: Content[],
+    config?: Config,
+    jobId?: string,
+  ): Promise<{ newHistory: Content[], knowledgeExtracted: ExtractedKnowledge[] }> {
+    const shouldCleanup = await this.shouldCleanupContext(history, config);
+    
+    if (shouldCleanup) {
+      // Extract knowledge and reduce context
+      return await this.reduceContext(history, config, jobId);
+    }
+    
+    // If no cleanup needed, return the original history
+    return {
+      newHistory: history,
+      knowledgeExtracted: []
+    };
   }
 
   /**
@@ -244,7 +277,7 @@ export class ContextManager {
   /**
    * Filter context to retain only the most important parts
    */
-  private filterContext(history: Content[]): Content[] {
+  protected filterContext(history: Content[]): Content[] {
     // In this simplified implementation, we'll keep model responses and
     // only the most recent user inputs, removing intermediate tool responses
     // that might be less essential for future context
@@ -269,6 +302,13 @@ export class ContextManager {
     }
 
     return filtered;
+  }
+
+  /**
+   * Public method to filter context using the internal filtering logic
+   */
+  public filterContextPublic(history: Content[]): Content[] {
+    return this.filterContext(history);
   }
 
   /**
@@ -312,5 +352,19 @@ export class ContextManager {
    */
   setCleanupThreshold(threshold: number): void {
     this.cleanupThreshold = threshold;
+  }
+
+  /**
+   * Update fixed token threshold
+   */
+  setFixedTokenThreshold(threshold: number): void {
+    this.fixedTokenThreshold = threshold;
+  }
+
+  /**
+   * Get current fixed token threshold
+   */
+  getFixedTokenThreshold(): number | undefined {
+    return this.fixedTokenThreshold;
   }
 }

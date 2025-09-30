@@ -552,10 +552,11 @@ function resolveEnvVarsInObject<T>(obj: T): T {
 function findEnvFile(startDir: string): string | null {
   let currentDir = path.resolve(startDir);
   while (true) {
-    // prefer gemini-specific .env under GEMINI_DIR
-    const geminiEnvPath = path.join(currentDir, GEMINI_DIR, '.env');
-    if (fs.existsSync(geminiEnvPath)) {
-      return geminiEnvPath;
+    // prefer qwen-specific .env under .qwen
+    const QWEN_DIR = '.qwen';
+    const qwenEnvPath = path.join(currentDir, QWEN_DIR, '.env');
+    if (fs.existsSync(qwenEnvPath)) {
+      return qwenEnvPath;
     }
     const envPath = path.join(currentDir, '.env');
     if (fs.existsSync(envPath)) {
@@ -563,7 +564,7 @@ function findEnvFile(startDir: string): string | null {
     }
     const parentDir = path.dirname(currentDir);
     if (parentDir === currentDir || !parentDir) {
-      // check .env under home as fallback, again preferring gemini-specific .env
+      // check .env under home as fallback, again preferring qwen-specific .env
       const homeGeminiEnvPath = path.join(homedir(), GEMINI_DIR, '.env');
       if (fs.existsSync(homeGeminiEnvPath)) {
         return homeGeminiEnvPath;

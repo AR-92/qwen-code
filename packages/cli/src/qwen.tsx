@@ -80,7 +80,7 @@ function getNodeMemoryArgs(config: Config): string[] {
     );
   }
 
-  if (process.env['GEMINI_CLI_NO_RELAUNCH']) {
+  if (process.env['QWEN_CLI_NO_RELAUNCH']) {
     return [];
   }
 
@@ -98,7 +98,7 @@ function getNodeMemoryArgs(config: Config): string[] {
 
 async function relaunchWithAdditionalArgs(additionalArgs: string[]) {
   const nodeArgs = [...additionalArgs, ...process.argv.slice(1)];
-  const newEnv = { ...process.env, GEMINI_CLI_NO_RELAUNCH: 'true' };
+  const newEnv = { ...process.env, QWEN_CLI_NO_RELAUNCH: 'true' };
 
   const child = spawn(process.execPath, nodeArgs, {
     stdio: 'inherit',
@@ -175,13 +175,13 @@ export async function main() {
   // Set Eva system prompt as default by pointing to the eva-system-prompt.md file
   // Set it unless the user has explicitly set a custom path (not the default location)
   const defaultSystemMdPath = join(os.homedir(), '.qwen', 'system.md');
-  const currentSystemMdPath = process.env['GEMINI_SYSTEM_MD'];
+  const currentSystemMdPath = process.env['QWEN_SYSTEM_MD'];
   
   // Only set our default if no custom path is set or if it's currently set to the default location
   if (!currentSystemMdPath || currentSystemMdPath === defaultSystemMdPath) {
     const evaSystemPromptPath = join(process.cwd(), 'eva-system-prompt.md');
     if (fs.existsSync(evaSystemPromptPath)) {
-      process.env['GEMINI_SYSTEM_MD'] = evaSystemPromptPath;
+      process.env['QWEN_SYSTEM_MD'] = evaSystemPromptPath;
     }
   }
   
@@ -244,8 +244,8 @@ export async function main() {
     }
   }
   // Empty key causes issues with the GoogleGenAI package.
-  if (process.env['GEMINI_API_KEY']?.trim() === '') {
-    delete process.env['GEMINI_API_KEY'];
+  if (process.env['QWEN_API_KEY']?.trim() === '') {
+    delete process.env['QWEN_API_KEY'];
   }
 
   if (process.env['GOOGLE_API_KEY']?.trim() === '') {
@@ -373,7 +373,7 @@ export async function main() {
   }
   if (!input) {
     console.error(
-      `No input provided via stdin. Input can be provided by piping data into gemini or using the --prompt option.`,
+      `No input provided via stdin. Input can be provided by piping data into qwen or using the --prompt option.`,
     );
     process.exit(1);
   }

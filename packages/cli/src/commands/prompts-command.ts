@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-// File for 'gemini prompt' command
+// File for 'qwen prompt' command
 import type { CommandModule, Argv } from 'yargs';
 
 export const promptCommand: CommandModule = {

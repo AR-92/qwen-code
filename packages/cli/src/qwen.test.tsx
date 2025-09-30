@@ -10,7 +10,7 @@ import {
   setupUnhandledRejectionHandler,
   validateDnsResolutionOrder,
   startInteractiveUI,
-} from './gemini.js';
+} from './qwen.js';
 import type { SettingsFile } from './config/settings.js';
 import { LoadedSettings, loadSettings } from './config/settings.js';
 import { appEvents, AppEvent } from './utils/events.js';

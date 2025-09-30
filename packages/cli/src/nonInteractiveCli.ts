@@ -39,7 +39,7 @@ export async function runNonInteractive(
       }
     });
 
-    const geminiClient = config.getGeminiClient();
+    const qwenClient = config.getGeminiClient();
 
     const abortController = new AbortController();
 
@@ -77,7 +77,7 @@ export async function runNonInteractive(
       }
       const toolCallRequests: ToolCallRequestInfo[] = [];
 
-      const responseStream = geminiClient.sendMessageStream(
+      const responseStream = qwenClient.sendMessageStream(
         currentMessages[0]?.parts || [],
         abortController.signal,
         prompt_id,

@@ -20,6 +20,13 @@ export * from './core/geminiRequest.js';
 export * from './core/coreToolScheduler.js';
 export * from './core/nonInteractiveToolExecutor.js';
 export * from './core/contextManager.js';
+export * from './core/enhancedContextManager.js';
+export * from './core/intentRecognitionEngine.js';
+export * from './core/smartToolSelector.js';
+export * from './core/predictiveExecutionEngine.js';
+export * from './core/magicalOrchestrator.js';
+export * from './core/enhancedGeminiChat.js';
+export * from './core/tokenMonitor.js';
 
 export * from './code_assist/codeAssist.js';
 export * from './code_assist/oauth2.js';
