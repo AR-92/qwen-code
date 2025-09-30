@@ -678,6 +678,7 @@ export async function loadCliConfig(
     enablePromptCompletion: settings.general?.enablePromptCompletion ?? false,
     skipLoopDetection: settings.skipLoopDetection ?? false,
     vlmSwitchMode,
+    useEnhancedOrchestration: settings.experimental?.enhancedOrchestration ?? true, // Enable by default
   });
 }
 

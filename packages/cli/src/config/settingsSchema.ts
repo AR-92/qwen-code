@@ -761,6 +761,16 @@ export const SETTINGS_SCHEMA = {
           'Default behavior when images are detected in input. Values: once (one-time switch), session (switch for entire session), persist (continue with current model). If not set, user will be prompted each time. This is a temporary experimental feature.',
         showInDialog: false,
       },
+      enhancedOrchestration: {
+        type: 'boolean',
+        label: 'Enhanced Orchestration',
+        category: 'Experimental',
+        requiresRestart: false,
+        default: true,
+        description:
+          'Enable enhanced orchestration with AI-powered intent recognition, predictive execution, and intelligent context management',
+        showInDialog: true,
+      },
     },
   },
 

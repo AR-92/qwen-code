@@ -111,7 +111,7 @@ const COMPRESSION_TOKEN_THRESHOLD = 0.7;
  */
 const COMPRESSION_PRESERVE_THRESHOLD = 0.3;
 
-export class GeminiClient {
+export abstract class BaseGeminiClient {
   private chat?: GeminiChat;
   private contentGenerator?: ContentGenerator;
   private readonly embeddingModel: string;

@@ -8,7 +8,8 @@
 export * from './config/config.js';
 
 // Export Core Logic
-export * from './core/client.js';
+export { BaseGeminiClient as GeminiClient } from './core/client.js';
+export * from './core/enhancedGeminiClient.js';
 export * from './core/contentGenerator.js';
 export * from './core/loggingContentGenerator.js';
 export * from './core/geminiChat.js';
@@ -26,6 +27,7 @@ export * from './core/smartToolSelector.js';
 export * from './core/predictiveExecutionEngine.js';
 export * from './core/magicalOrchestrator.js';
 export * from './core/enhancedGeminiChat.js';
+export * from './core/enhancedGeminiClient.js';
 export * from './core/tokenMonitor.js';
 
 export * from './code_assist/codeAssist.js';

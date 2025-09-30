@@ -7,12 +7,13 @@
 import type { Content } from '@google/genai';
 import * as path from 'node:path';
 import process from 'node:process';
-import { GeminiClient } from '../core/client.js';
+import { BaseGeminiClient as GeminiClient } from '../core/client.js';
 import type { ContentGeneratorConfig } from '../core/contentGenerator.js';
 import {
   AuthType,
   createContentGeneratorConfig,
 } from '../core/contentGenerator.js';
+import { EnhancedGeminiClient } from '../core/enhancedGeminiClient.js';
 import { IdeClient } from '../ide/ide-client.js';
 import type { MCPOAuthConfig } from '../mcp/oauth-provider.js';
 import { PromptRegistry } from '../prompts/prompt-registry.js';
@@ -246,6 +247,7 @@ export interface ConfigParameters {
   enablePromptCompletion?: boolean;
   skipLoopDetection?: boolean;
   vlmSwitchMode?: string;
+  useEnhancedOrchestration?: boolean;
   contextManagement?: {
     cleanupThreshold?: number;
     maxKnowledgeEntries?: number;
@@ -283,6 +285,7 @@ export class Config {
   private readonly gitCoAuthor: GitCoAuthorSettings;
   private readonly usageStatisticsEnabled: boolean;
   private geminiClient!: GeminiClient;
+  private useEnhancedOrchestration: boolean = false;
   private readonly fileFiltering: {
     respectGitIgnore: boolean;
     respectGeminiIgnore: boolean;
@@ -343,6 +346,7 @@ export class Config {
   private readonly enablePromptCompletion: boolean = false;
   private readonly skipLoopDetection: boolean;
   private readonly vlmSwitchMode: string | undefined;
+  private readonly useEnhancedOrchestration: boolean;
   private readonly contextManagementSettings: {
     cleanupThreshold: number;
     maxKnowledgeEntries: number;
@@ -444,6 +448,7 @@ export class Config {
     this.storage = new Storage(this.targetDir);
     this.enablePromptCompletion = params.enablePromptCompletion ?? false;
     this.vlmSwitchMode = params.vlmSwitchMode;
+    this.useEnhancedOrchestration = params.useEnhancedOrchestration ?? false;
     this.contextManagementSettings = {
       cleanupThreshold: params.contextManagement?.cleanupThreshold ?? 0.8, // 80% threshold
       maxKnowledgeEntries: params.contextManagement?.maxKnowledgeEntries ?? 100,
@@ -486,6 +491,14 @@ export class Config {
     this.subagentManager = new SubagentManager(this);
     this.toolRegistry = await this.createToolRegistry();
     logCliConfiguration(this, new StartSessionEvent(this, this.toolRegistry));
+    
+    // Apply enhanced orchestration setting after initialization
+    this.setUseEnhancedOrchestration(this.useEnhancedOrchestration);
+    
+    // Initialize the appropriate client based on the enhanced orchestration setting
+    this.geminiClient = this.useEnhancedOrchestration ? 
+      (new EnhancedGeminiClient(this) as any) : 
+      new GeminiClient(this);
   }
 
   async refreshAuth(authMethod: AuthType) {
@@ -502,8 +515,15 @@ export class Config {
     );
 
     // Create and initialize new client in local variable first
-    const newGeminiClient = new GeminiClient(this);
-    await newGeminiClient.initialize(newContentGeneratorConfig);
+    let newGeminiClient: GeminiClient;
+    if (this.useEnhancedOrchestration) {
+      const enhancedClient = new EnhancedGeminiClient(this);
+      await enhancedClient.initialize(newContentGeneratorConfig, existingHistory);
+      newGeminiClient = enhancedClient as any; // Type assertion for interface compatibility
+    } else {
+      newGeminiClient = new GeminiClient(this);
+      await newGeminiClient.initialize(newContentGeneratorConfig, existingHistory);
+    }
 
     // Vertex and Genai have incompatible encryption and sending history with
     // throughtSignature from Genai to Vertex will fail, we need to strip them
@@ -1021,6 +1041,45 @@ export class Config {
 
   getSubagentManager(): SubagentManager {
     return this.subagentManager;
+  }
+
+  setUseEnhancedOrchestration(useEnhanced: boolean): void {
+    if (this.useEnhancedOrchestration !== useEnhanced) {
+      this.useEnhancedOrchestration = useEnhanced;
+      // Reinitialize the client with the new setting if already initialized
+      if (this.geminiClient && this.contentGeneratorConfig) {
+        this.reinitializeClient();
+      }
+    }
+  }
+
+  getUseEnhancedOrchestration(): boolean {
+    return this.useEnhancedOrchestration;
+  }
+
+  private async reinitializeClient(): Promise<void> {
+    if (!this.contentGeneratorConfig) {
+      return;
+    }
+
+    // Save existing history from current client if it exists
+    let existingHistory: Content[] = [];
+    if (this.geminiClient && this.geminiClient.isInitialized()) {
+      existingHistory = this.geminiClient.getHistory();
+    }
+    
+    // Create new client with appropriate type
+    let newGeminiClient: GeminiClient;
+    if (this.useEnhancedOrchestration) {
+      const enhancedClient = new EnhancedGeminiClient(this);
+      await enhancedClient.initialize(this.contentGeneratorConfig, existingHistory);
+      newGeminiClient = enhancedClient as any; // Type assertion for interface compatibility
+    } else {
+      newGeminiClient = new GeminiClient(this);
+      await newGeminiClient.initialize(this.contentGeneratorConfig, existingHistory);
+    }
+    
+    this.geminiClient = newGeminiClient;
   }
 
   async createToolRegistry(): Promise<ToolRegistry> {
